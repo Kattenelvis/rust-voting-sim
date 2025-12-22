@@ -4,13 +4,17 @@ fn main() {
 
     let p = preference_loading(N);
 
-    plurality_voting(p);
+    // let vote = plurality_voting(p);
+    let vote = copeland_voting(p);
+    println!("{vote:?}");
 }
 
-fn preference_loading(n: usize) -> Vec<[i32; 3]> {
+fn preference_loading(n: usize) -> Vec<[usize; 3]> {
     // Loading preference data into use
     // Assumes transitive and complete preferences (total ordering)
-    let mut p: Vec<[i32; 3]> = Vec::with_capacity(n);
+    // TODO: Perhaps it's better to have key value pair from a preference to the number of holders
+    // of that preference
+    let mut p: Vec<[usize; 3]> = Vec::with_capacity(n);
     for n in 0..n {
         p.push(if n % 4 == 0 { [0, 1, 2] } else { [1, 0, 2] });
     }
@@ -18,8 +22,9 @@ fn preference_loading(n: usize) -> Vec<[i32; 3]> {
     return p;
 }
 
-fn plurality_voting(p: Vec<[i32; 3]>) {
-    // Plurality Voting (FPTP)
+// Uses preferences to do plurality voting
+// Also known as first past the post (FPTP)
+fn plurality_voting(p: Vec<[i32; 3]>) -> [i32; 3] {
     let mut sums = [0, 0, 0];
     for n in p {
         match n[0] {
@@ -29,12 +34,18 @@ fn plurality_voting(p: Vec<[i32; 3]>) {
             _ => {}
         }
     }
-
-    println!("{sums:?}");
+    return sums;
 }
 
-// fn preferenceAssignment() {
-// }
+fn copeland_voting(preferences: Vec<[usize; 3]>) -> [usize; 3] {
+    let mut sums = [0, 0, 0];
+    for preference in preferences {
+        for i in 0..preference.len() {
+            sums[preference[i]] += preference.len() - i - 1;
+        }
+    }
+    return sums;
+}
 
 // let candidates = ["a", "b", "c"];
 
