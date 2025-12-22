@@ -47,6 +47,8 @@ fn copeland_voting(preferences: Vec<[usize; 3]>) -> [usize; 3] {
     return sums;
 }
 
+fn symmetric_borda_score(preferences: Vec<[usize; 3]>) -> [usize; 3] {}
+
 // let candidates = ["a", "b", "c"];
 
 // let preferences = [["a"], ["b"]];
