@@ -7,18 +7,21 @@ fn main() {
     // Voting population size
     const N: u32 = 10_u32.pow(8);
 
-    let p: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading(N));
-    let p1 = Arc::clone(&p);
-    let p2 = Arc::clone(&p);
+    let preferences: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading(N));
+    let preferences_clone_1 = Arc::clone(&preferences);
+    let preferences_clone_2 = Arc::clone(&preferences);
 
-    let handle1 = thread::spawn(move || {
-        let vote = plurality_voting(&p1);
-        println!("{vote:?}");
+    let mut vote_plurality = [42; 3];
+    let mut vote_copeland = [42; 3];
+
+    thread::spawn(move || {
+        vote_plurality = plurality_voting(&preferences_clone_1);
+        println!("{vote_plurality:?}");
     });
 
-    let handle = thread::spawn(move || {
-        let vote = copeland_voting(&p2);
-        println!("{vote:?}");
+    thread::spawn(move || {
+        vote_copeland = copeland_voting(&preferences_clone_2);
+        println!("{vote_copeland:?}");
     });
 
     // handle.join().unwrap();
