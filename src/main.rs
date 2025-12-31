@@ -1,13 +1,28 @@
+use code_timing_macros::time_function;
+use std::sync::Arc;
+use std::thread;
+
+#[time_function]
 fn main() {
     // Voting population size
     const N: u32 = 10_u32.pow(8);
 
-    let p = preference_loading(N);
+    let p: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading(N));
+    let p1 = Arc::clone(&p);
+    let p2 = Arc::clone(&p);
 
-    let vote = plurality_voting(&p);
-    println!("{vote:?}");
-    let votec = copeland_voting(&p);
-    println!("{votec:?}");
+    let handle1 = thread::spawn(move || {
+        let vote = plurality_voting(&p1);
+        println!("{vote:?}");
+    });
+
+    let handle = thread::spawn(move || {
+        let vote = copeland_voting(&p2);
+        println!("{vote:?}");
+    });
+
+    // handle.join().unwrap();
+    // handle1.join().unwrap();
 }
 
 fn preference_loading(population: u32) -> Vec<[u8; 3]> {
