@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::thread;
 
 mod kpi;
+mod preference_loading;
 
 #[time_function]
 fn main() {
@@ -11,7 +12,8 @@ fn main() {
     // Voting population size
     const N: u32 = 2 * 10_u32.pow(5);
 
-    let preferences: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading(N));
+    let preferences: Arc<Vec<[u8; 3]>> =
+        Arc::new(preference_loading::preference_loading::every_nth(N, 4));
     let preferences_clone_1 = Arc::clone(&preferences);
     let preferences_clone_2 = Arc::clone(&preferences);
     let preferences_clone_3 = Arc::clone(&preferences);
@@ -41,20 +43,6 @@ fn main() {
     h1.join().unwrap();
     h2.join().unwrap();
     h3.join().unwrap();
-}
-
-fn preference_loading(population: u32) -> Vec<[u8; 3]> {
-    let pop = population as usize;
-    // Loading preference data into use
-    // Assumes transitive and complete preferences (total ordering)
-    // TODO: Perhaps it's better to have key value pair from a preference to the number of holders
-    // of that preference
-    let mut preferences: Vec<[u8; 3]> = Vec::with_capacity(pop);
-    for n in 0..pop {
-        preferences.push(if n % 4 == 0 { [0, 1, 2] } else { [1, 0, 2] });
-    }
-
-    return preferences;
 }
 
 // Uses preferences to do plurality voting

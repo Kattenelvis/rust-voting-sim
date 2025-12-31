@@ -7,8 +7,10 @@ pub mod kpi {
     // It can definetly be any signed or unsigned integer
     // any enum if there's a match case for matchigng each case to a value.
 
-    pub fn main() -> i128 {
-        let a: i128 = 1;
-        a
+    pub fn main() -> u128 {
+        // let a: u128 = 9 * 10_u128.pow(1000000000);
+        // a
+
+        1
     }
 }
