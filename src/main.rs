@@ -1,30 +1,32 @@
 fn main() {
     // Voting population size
-    const N: usize = 10_usize.pow(7);
+    const N: u32 = 10_u32.pow(8);
 
     let p = preference_loading(N);
 
-    // let vote = plurality_voting(p);
-    let vote = copeland_voting(p);
+    let vote = plurality_voting(&p);
     println!("{vote:?}");
+    let votec = copeland_voting(&p);
+    println!("{votec:?}");
 }
 
-fn preference_loading(n: usize) -> Vec<[usize; 3]> {
+fn preference_loading(population: u32) -> Vec<[u8; 3]> {
+    let pop = population as usize;
     // Loading preference data into use
     // Assumes transitive and complete preferences (total ordering)
     // TODO: Perhaps it's better to have key value pair from a preference to the number of holders
     // of that preference
-    let mut p: Vec<[usize; 3]> = Vec::with_capacity(n);
-    for n in 0..n {
-        p.push(if n % 4 == 0 { [0, 1, 2] } else { [1, 0, 2] });
+    let mut preferences: Vec<[u8; 3]> = Vec::with_capacity(pop);
+    for n in 0..pop {
+        preferences.push(if n % 4 == 0 { [0, 1, 2] } else { [1, 0, 2] });
     }
 
-    return p;
+    return preferences;
 }
 
 // Uses preferences to do plurality voting
 // Also known as first past the post (FPTP)
-fn plurality_voting(p: Vec<[i32; 3]>) -> [i32; 3] {
+fn plurality_voting(p: &Vec<[u8; 3]>) -> [usize; 3] {
     let mut sums = [0, 0, 0];
     for n in p {
         match n[0] {
@@ -37,17 +39,17 @@ fn plurality_voting(p: Vec<[i32; 3]>) -> [i32; 3] {
     return sums;
 }
 
-fn copeland_voting(preferences: Vec<[usize; 3]>) -> [usize; 3] {
+fn copeland_voting(preferences: &Vec<[u8; 3]>) -> [usize; 3] {
     let mut sums = [0, 0, 0];
     for preference in preferences {
         for i in 0..preference.len() {
-            sums[preference[i]] += preference.len() - i - 1;
+            sums[preference[i] as usize] += preference.len() - i - 1;
         }
     }
     return sums;
 }
 
-fn symmetric_borda_score(preferences: Vec<[usize; 3]>) -> [usize; 3] {}
+// fn symmetric_borda_score(preferences: Vec<[usize; 3]>) -> [usize; 3] {}
 
 // let candidates = ["a", "b", "c"];
 
