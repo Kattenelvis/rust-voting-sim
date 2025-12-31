@@ -11,21 +11,23 @@ fn main() {
     let preferences_clone_1 = Arc::clone(&preferences);
     let preferences_clone_2 = Arc::clone(&preferences);
 
-    let mut vote_plurality = [42; 3];
-    let mut vote_copeland = [42; 3];
+    let mut vote_plurality = [0; 3];
+    let mut vote_copeland = [0; 3];
 
-    thread::spawn(move || {
+    let h1 = thread::spawn(move || {
         vote_plurality = plurality_voting(&preferences_clone_1);
         println!("{vote_plurality:?}");
+        vote_plurality
     });
 
-    thread::spawn(move || {
+    let h2 = thread::spawn(move || {
         vote_copeland = copeland_voting(&preferences_clone_2);
         println!("{vote_copeland:?}");
+        vote_copeland
     });
 
-    // handle.join().unwrap();
-    // handle1.join().unwrap();
+    h1.join().unwrap();
+    h2.join().unwrap();
 }
 
 fn preference_loading(population: u32) -> Vec<[u8; 3]> {
