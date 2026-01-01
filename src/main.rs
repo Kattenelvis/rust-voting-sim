@@ -1,4 +1,5 @@
 use code_timing_macros::time_function;
+use std::num::{NonZeroIsize, NonZeroUsize};
 use std::sync::Arc;
 use std::thread;
 
@@ -12,8 +13,7 @@ fn main() {
     // Voting population size
     const N: u32 = 2 * 10_u32.pow(5);
 
-    let preferences: Arc<Vec<[u8; 3]>> =
-        Arc::new(preference_loading::preference_loading::every_nth(N, 4));
+    let preferences: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading::every_nth(N, 4));
     let preferences_clone_1 = Arc::clone(&preferences);
     let preferences_clone_2 = Arc::clone(&preferences);
     let preferences_clone_3 = Arc::clone(&preferences);
@@ -79,6 +79,15 @@ fn score_voting(preferences: &Vec<[u8; 3]>) -> [usize; 3] {
         }
     }
     sums
+}
+
+#[derive(Debug)]
+struct Predictor {}
+
+#[derive(Debug)]
+struct World<T: PartialOrd> {
+    population: NonZeroUsize,
+    kpis: [T],
 }
 
 // fn symmetric_borda_score(preferences: Vec<[usize; 3]>) -> [usize; 3] {}
