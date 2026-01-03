@@ -13,7 +13,7 @@ fn main() {
         kpis: Vec::new(),
     };
 
-    World::<i32>::simulate();
+    // World::<i32>::simulate();
 }
 
 // Uses preferences to do plurality voting
@@ -96,15 +96,6 @@ impl<T: PartialOrd> World<T> {
         h1.join().unwrap();
         h2.join().unwrap();
         h3.join().unwrap();
-    }
-}
-
-trait Cwa {}
-
-impl Cwa for World<i32> {}
-impl World<i32> {
-    fn hi() -> i32 {
-        3
     }
 }
 
