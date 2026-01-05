@@ -1,4 +1,6 @@
 use code_timing_macros::time_function;
+use std::collections::HashMap;
+use std::fmt::Debug;
 use std::num::{NonZeroIsize, NonZeroUsize};
 use std::sync::Arc;
 use std::thread;
@@ -8,12 +10,16 @@ mod preference_loading;
 
 #[time_function]
 fn main() {
-    let world: World<i32> = World {
-        population: NonZeroUsize::new(10_usize).unwrap(),
-        kpis: Vec::new(),
+    let voters = vec![1000; 10];
+
+    let world: World<i32, i32> = World {
+        voters,
+        kpis: vec![100; 10],
+        delegation: HashMap::new(),
+        timestep: 0,
     };
 
-    // World::<i32>::simulate();
+    World::<i32, i32>::simulate_world(&world);
 }
 
 // Uses preferences to do plurality voting
@@ -56,13 +62,37 @@ fn score_voting(preferences: &Vec<[u8; 3]>) -> [usize; 3] {
 struct Predictor {}
 
 #[derive(Debug)]
-struct World<T: PartialOrd> {
-    population: NonZeroUsize,
-    kpis: Vec<T>,
+struct World<T, U> {
+    timestep: u32,
+    voters: Vec<T>,
+    kpis: Vec<U>,
+    delegation: HashMap<T, T>,
 }
 
-impl<T: PartialOrd> World<T> {
-    fn simulate() {
+impl<T, U: Debug> World<T, U> {
+    fn simulation(&self) {
+        self.simulate_world();
+        let _prediction = self.simulate_prediction_market();
+        self.simulate_delegation();
+        self.simulate_voting();
+    }
+
+    fn simulate_world(&self) {
+        for kpi in &self.kpis {
+            println!("{kpi:?}");
+        }
+    }
+
+    fn simulate_prediction_market(&self) -> &U {
+        todo!()
+        // &self.kpis.get(self.timestep)
+    }
+
+    fn simulate_delegation(&self) {
+        todo!()
+    }
+
+    fn simulate_voting(&self) {
         // Voting population size
         const N: u32 = 2 * 10_u32.pow(5);
 
