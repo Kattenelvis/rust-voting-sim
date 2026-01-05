@@ -19,7 +19,7 @@ fn main() {
         timestep: 0,
     };
 
-    World::<i32, i32>::simulate_world(&world);
+    World::<i32, i32>::simulation(&world);
 }
 
 // Uses preferences to do plurality voting
@@ -72,8 +72,8 @@ struct World<T, U> {
 impl<T, U: Debug> World<T, U> {
     fn simulation(&self) {
         self.simulate_world();
-        let _prediction = self.simulate_prediction_market();
-        self.simulate_delegation();
+        // let _prediction = self.simulate_prediction_market();
+        // self.simulate_delegation();
         self.simulate_voting();
     }
 
