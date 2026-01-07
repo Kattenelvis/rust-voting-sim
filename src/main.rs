@@ -2,6 +2,7 @@ use code_timing_macros::time_function;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::num::{NonZeroIsize, NonZeroUsize};
+use std::ops::AddAssign;
 use std::sync::Arc;
 use std::thread;
 
@@ -12,14 +13,14 @@ mod preference_loading;
 fn main() {
     let voters = vec![1000; 10];
 
-    let world: World<i32, i32> = World {
+    let mut world: World<i32> = World {
         voters,
-        kpis: vec![100; 10],
+        kpis: &mut vec![100; 10],
         delegation: HashMap::new(),
         timestep: 0,
     };
 
-    World::<i32, i32>::simulation(&world);
+    World::<i32>::simulation(&mut world);
 }
 
 // Uses preferences to do plurality voting
@@ -62,28 +63,39 @@ fn score_voting(preferences: &Vec<[u8; 3]>) -> [usize; 3] {
 struct Predictor {}
 
 #[derive(Debug)]
-struct World<T, U> {
+struct World<'a, T> {
     timestep: u32,
     voters: Vec<T>,
-    kpis: Vec<U>,
+    kpis: &'a mut Vec<usize>,
     delegation: HashMap<T, T>,
 }
 
-impl<T, U: Debug> World<T, U> {
-    fn simulation(&self) {
-        self.simulate_world();
+impl<'a, T> World<'a, T> {
+    fn simulation(&mut self) {
         // let _prediction = self.simulate_prediction_market();
         // self.simulate_delegation();
-        self.simulate_voting();
+        let mut result = self.simulate_voting().clone();
+        self.simulate_world(&mut result);
     }
 
-    fn simulate_world(&self) {
-        for kpi in &self.kpis {
+    fn simulate_world(&mut self, voting_result: &mut [usize; 3]) {
+        voting_result.sort();
+        let winner = voting_result[voting_result.len() - 1];
+        println!("Winning proposal received {winner} votes");
+
+        self.kpis[0] += match winner {
+            0 => 10,
+            1 => 20,
+            2 => 30,
+            _ => 0,
+        };
+
+        for kpi in &mut *self.kpis {
             println!("{kpi:?}");
         }
     }
 
-    fn simulate_prediction_market(&self) -> &U {
+    fn simulate_prediction_market(&self) -> &usize {
         todo!()
         // &self.kpis.get(self.timestep)
     }
@@ -92,7 +104,7 @@ impl<T, U: Debug> World<T, U> {
         todo!()
     }
 
-    fn simulate_voting(&self) {
+    fn simulate_voting(&self) -> [usize; 3] {
         // Voting population size
         const N: u32 = 2 * 10_u32.pow(5);
 
@@ -124,8 +136,10 @@ impl<T, U: Debug> World<T, U> {
         });
 
         h1.join().unwrap();
-        h2.join().unwrap();
+        let jh = h2.join().unwrap();
         h3.join().unwrap();
+
+        jh
     }
 }
 
