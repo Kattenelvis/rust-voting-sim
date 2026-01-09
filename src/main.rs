@@ -1,8 +1,6 @@
 use code_timing_macros::time_function;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::num::{NonZeroIsize, NonZeroUsize};
-use std::ops::AddAssign;
 use std::sync::Arc;
 use std::thread;
 
@@ -17,7 +15,7 @@ fn main() {
         voters,
         kpis: &mut vec![100; 10],
         delegation: HashMap::new(),
-        timestep: 0,
+        timesteps: 4,
     };
 
     World::<i32>::simulation(&mut world);
@@ -64,7 +62,7 @@ struct Predictor {}
 
 #[derive(Debug)]
 struct World<'a, T> {
-    timestep: u32,
+    timesteps: u32,
     voters: Vec<T>,
     kpis: &'a mut Vec<usize>,
     delegation: HashMap<T, T>,
@@ -72,10 +70,13 @@ struct World<'a, T> {
 
 impl<'a, T> World<'a, T> {
     fn simulation(&mut self) {
-        // let _prediction = self.simulate_prediction_market();
-        // self.simulate_delegation();
-        let mut result = self.simulate_voting().clone();
-        self.simulate_world(&mut result);
+        for i in 0..self.timesteps {
+            println!("Timestep: {i}");
+            // let _prediction = self.simulate_prediction_market();
+            // self.simulate_delegation();
+            let mut result = self.simulate_voting().clone();
+            self.simulate_world(&mut result);
+        }
     }
 
     fn simulate_world(&mut self, voting_result: &mut [usize; 3]) {
@@ -87,7 +88,7 @@ impl<'a, T> World<'a, T> {
             0 => 10,
             1 => 20,
             2 => 30,
-            _ => 0,
+            _ => 10,
         };
 
         for kpi in &mut *self.kpis {
