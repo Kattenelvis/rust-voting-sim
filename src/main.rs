@@ -9,18 +9,109 @@ mod preference_loading;
 
 #[time_function]
 fn main() {
-    let voters = vec![1000; 10];
-
-    let mut world: World<i32> = World {
-        voters,
-        kpis: &mut vec![100; 10],
+    let mut world: World<u32> = World {
+        population: 1000,
+        kpis: vec![0],
         delegation: HashMap::new(),
-        timesteps: 4,
+        proportion_of_adversarials: 0.1,
+        timesteps: 300,
     };
 
-    World::<i32>::simulation(&mut world);
+    World::<u32>::simulation(&mut world);
 }
 
+#[derive(Debug)]
+struct World<T> {
+    timesteps: u32,
+    population: usize,
+    kpis: Vec<usize>,
+    delegation: HashMap<T, T>,
+    proportion_of_adversarials: f32,
+}
+
+impl<T> World<T> {
+    fn simulation(&mut self) {
+        for i in 0..self.timesteps {
+            println!("Timestep: {i}");
+            // let _prediction = self.simulate_prediction_market();
+            // self.simulate_delegation();
+            let voting_results = self.simulate_voting();
+            self.simulate_world(&voting_results);
+        }
+    }
+
+    fn simulate_world(&mut self, voting_results: &HashMap<String, usize>) {
+        // voting_result.sort();
+        let winner = voting_results.iter().max().unwrap();
+        // let winner = voting_result[voting_result.len() - 1];
+        let (name, votes) = voting_results.iter().max_by_key(|entry| entry.1).unwrap();
+
+        println!("Winner: {} with {} votes", name, votes);
+
+        self.kpis[0] += match name.as_str() {
+            "Mixed" => 10,
+            "Raddish" => 20,
+            "Potato" => 30,
+            _ => 10,
+        };
+
+        for kpi in &mut *self.kpis {
+            println!("{kpi:?}");
+        }
+    }
+
+    fn simulate_prediction_market(&self) -> &usize {
+        todo!()
+        // &self.kpis.get(self.timestep)
+    }
+
+    fn simulate_delegation(&self) {
+        todo!()
+    }
+
+    fn simulate_voting(&self) -> HashMap<String, usize> {
+        let mut map = HashMap::new();
+        map.insert("Mixed".to_string(), 100);
+        map.insert("Raddish".to_string(), 200);
+        map.insert("Potato".to_string(), 300);
+        map
+    }
+}
+
+fn simulate_voting(population: usize) -> [usize; 3] {
+    let preferences: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading::every_nth(population, 4));
+    let preferences_clone_1 = Arc::clone(&preferences);
+    let preferences_clone_2 = Arc::clone(&preferences);
+    let preferences_clone_3 = Arc::clone(&preferences);
+
+    let mut vote_plurality = [0; 3];
+    let mut vote_score = [0; 3];
+    let mut vote_quadratic = [0; 3];
+
+    let h1 = thread::spawn(move || {
+        vote_plurality = plurality_voting(&preferences_clone_1);
+        println!("{vote_plurality:?}");
+        vote_plurality
+    });
+
+    let h2 = thread::spawn(move || {
+        vote_score = score_voting(&preferences_clone_2);
+        println!("{vote_score:?}");
+        vote_score
+    });
+
+    let h3 = thread::spawn(move || {
+        vote_quadratic = quadratic_voting(&preferences_clone_3);
+        println!("{vote_quadratic:?}");
+        vote_quadratic
+    });
+
+    h1.join().unwrap();
+    let jh = h2.join().unwrap();
+    h3.join().unwrap();
+
+    jh
+}
 // Uses preferences to do plurality voting
 // Also known as first past the post (FPTP)
 fn plurality_voting(p: &Vec<[u8; 3]>) -> [usize; 3] {
@@ -56,113 +147,3 @@ fn score_voting(preferences: &Vec<[u8; 3]>) -> [usize; 3] {
     }
     sums
 }
-
-#[derive(Debug)]
-struct Predictor {}
-
-#[derive(Debug)]
-struct World<'a, T> {
-    timesteps: u32,
-    voters: Vec<T>,
-    kpis: &'a mut Vec<usize>,
-    delegation: HashMap<T, T>,
-}
-
-impl<'a, T> World<'a, T> {
-    fn simulation(&mut self) {
-        for i in 0..self.timesteps {
-            println!("Timestep: {i}");
-            // let _prediction = self.simulate_prediction_market();
-            // self.simulate_delegation();
-            let mut result = self.simulate_voting().clone();
-            self.simulate_world(&mut result);
-        }
-    }
-
-    fn simulate_world(&mut self, voting_result: &mut [usize; 3]) {
-        voting_result.sort();
-        let winner = voting_result[voting_result.len() - 1];
-        println!("Winning proposal received {winner} votes");
-
-        self.kpis[0] += match winner {
-            0 => 10,
-            1 => 20,
-            2 => 30,
-            _ => 10,
-        };
-
-        for kpi in &mut *self.kpis {
-            println!("{kpi:?}");
-        }
-    }
-
-    fn simulate_prediction_market(&self) -> &usize {
-        todo!()
-        // &self.kpis.get(self.timestep)
-    }
-
-    fn simulate_delegation(&self) {
-        todo!()
-    }
-
-    fn simulate_voting(&self) -> [usize; 3] {
-        // Voting population size
-        const N: u32 = 2 * 10_u32.pow(5);
-
-        let preferences: Arc<Vec<[u8; 3]>> = Arc::new(preference_loading::every_nth(N, 4));
-        let preferences_clone_1 = Arc::clone(&preferences);
-        let preferences_clone_2 = Arc::clone(&preferences);
-        let preferences_clone_3 = Arc::clone(&preferences);
-
-        let mut vote_plurality = [0; 3];
-        let mut vote_score = [0; 3];
-        let mut vote_quadratic = [0; 3];
-
-        let h1 = thread::spawn(move || {
-            vote_plurality = plurality_voting(&preferences_clone_1);
-            println!("{vote_plurality:?}");
-            vote_plurality
-        });
-
-        let h2 = thread::spawn(move || {
-            vote_score = score_voting(&preferences_clone_2);
-            println!("{vote_score:?}");
-            vote_score
-        });
-
-        let h3 = thread::spawn(move || {
-            vote_quadratic = quadratic_voting(&preferences_clone_3);
-            println!("{vote_quadratic:?}");
-            vote_quadratic
-        });
-
-        h1.join().unwrap();
-        let jh = h2.join().unwrap();
-        h3.join().unwrap();
-
-        jh
-    }
-}
-
-// fn symmetric_borda_score(preferences: Vec<[usize; 3]>) -> [usize; 3] {}
-
-// let candidates = ["a", "b", "c"];
-
-// let preferences = [["a"], ["b"]];
-// Loading preference data into use
-// let mut pref: [str; 10000] = Vec::with_capacity(10000);
-
-// let mut p = Vec::with_capacity(N);
-// let mut p: Vec<_> = (0..N).collect();
-// println!("{p:?}");
-// for i in 0..N {
-//     p.push(["a", "b", "c"]);
-//     println!("{}", p[i]);
-// }
-
-// let p: Box<[[i32; 3]; N]> = Box::new(std::array::from_fn(|n| match n {
-//     _ if (n % 3 == 0) => [0, 1, 2],
-//     _ => [1, 0, 2],
-// }));
-
-// println!("{p:?}");
