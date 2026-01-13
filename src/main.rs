@@ -1,21 +1,34 @@
 use code_timing_macros::time_function;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::sync::Arc;
-use std::thread;
+use std::io;
 
-mod kpi;
 mod preference;
 mod preference_loading;
 
-#[time_function]
 fn main() {
+    let mut input = String::new();
+
+    println!("Enter population:");
+    io::stdin().read_line(&mut input).unwrap();
+    let population: usize = input.trim().parse().unwrap();
+
+    input.clear();
+    println!("Enter timesteps:");
+    io::stdin().read_line(&mut input).unwrap();
+    let timesteps: u32 = input.trim().parse().unwrap();
+
+    run_world(population, timesteps);
+}
+
+#[time_function]
+fn run_world(population: usize, timesteps: u32) {
     let mut world: World<u32> = World {
-        population: 1000,
+        population,
         kpis: vec![0],
         delegation: HashMap::new(),
         proportion_of_adversarials: 0.1,
-        timesteps: 300,
+        timesteps,
     };
 
     World::<u32>::simulation(&mut world);
@@ -70,9 +83,9 @@ impl<T> World<T> {
 
     fn simulate_voting(&self) -> HashMap<String, usize> {
         let mut map = HashMap::new();
-        map.insert("Mixed".to_string(), 100);
-        map.insert("Raddish".to_string(), 200);
-        map.insert("Potato".to_string(), 300);
+        map.insert("Mixed".to_string(), self.population / 4);
+        map.insert("Raddish".to_string(), self.population / 4);
+        map.insert("Potato".to_string(), self.population / 2);
         map
     }
 }
