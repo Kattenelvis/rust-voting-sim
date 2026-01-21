@@ -1,6 +1,7 @@
 use code_timing_macros::time_function;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::intrinsics::catch_unwind;
 use std::io;
 
 mod preference;
@@ -22,6 +23,22 @@ fn main() {
     println!("Enter frequency of adversarials:");
     io::stdin().read_line(&mut input).unwrap();
     let proportion_of_adversarials: f32 = input.trim().parse().unwrap();
+
+    input.clear();
+    println!("Enter type of democracy (d, r, l):");
+    io::stdin().read_line(&mut input).unwrap();
+    let type_of_democracy_input: f32 = input.trim().parse().unwrap();
+
+    let mut type_of_democracy :DemocracyTypes = DemocracyTypes::Direct;
+    type_of_democracy = match type_of_democracy_input{
+         "d" => DemocracyTypes::Direct;
+         "r" => DemocracyTypes::Representative;
+         "l" => DemocracyTypes::Liquid;
+         _ => DemocracyTypes::Direct
+    }
+
+
+
     run_world(population, timesteps, proportion_of_adversarials);
 }
 
@@ -32,9 +49,23 @@ fn run_world(population: usize, timesteps: u32, proportion_of_adversarials: f32)
         kpis: vec![0],
         proportion_of_adversarials,
         timesteps,
+        representative: Representative::Null,
     };
 
     World::simulation(&mut world);
+}
+
+#[derive(Debug)]
+enum DemocracyTypes {
+    Direct,
+    Representative,
+    Liquid
+}
+#[derive(Debug)]
+enum Representative {
+    Null,
+    Nice,
+    Adversary,
 }
 
 #[derive(Debug)]
@@ -43,6 +74,7 @@ struct World {
     population: usize,
     kpis: Vec<usize>,
     proportion_of_adversarials: f32,
+    representative: Representative,
 }
 
 impl World {
@@ -51,7 +83,7 @@ impl World {
             println!("Timestep: {i}");
             let _prediction = self.simulate_prediction_market();
             println!("Prediction: Best one yields {_prediction}");
-            let voting_results = self.simulate_voting();
+            let voting_results = self.direct_voting();
             self.simulate_world(&voting_results);
         }
     }
@@ -84,7 +116,7 @@ impl World {
         }
     }
 
-    fn simulate_voting(&self) -> HashMap<String, u32> {
+    fn direct_voting(&self) -> HashMap<String, u32> {
         let mut map = HashMap::new();
         map.insert(
             "Rotten Tomatos".to_string(),
@@ -95,6 +127,13 @@ impl World {
             (self.population as f32 - self.population as f32 * self.proportion_of_adversarials)
                 .round() as u32,
         );
+        map
+    }
+
+    fn representative_voting(&self) -> HashMap<String, u32> {
+        let mut map = HashMap::new();
+        if self.timesteps % 16 == 0 {}
+
         map
     }
 }
