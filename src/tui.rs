@@ -1,4 +1,5 @@
 use core::prelude;
+use crossterm::event::{KeyEvent, KeyEventKind};
 use ratatui::prelude::{Line, Stylize};
 use std::io;
 
@@ -18,10 +19,22 @@ pub struct App {
 impl App {
     fn run(&mut self, terminal: &mut ratatui::DefaultTerminal) -> io::Result<()> {
         while !self.exit {
+            match crossterm::event::read()? {
+                crossterm::event::Event::Key(key_event) => self.handle_key_event(key_event),
+                _ => {}
+            }
             terminal.draw(|frame| self.draw(frame))?;
         }
 
         Ok(())
+    }
+
+    fn handle_key_event(&mut self, key_event: crossterm::event::KeyEvent) {
+        if key_event.kind == KeyEventKind::Press
+            && key_event.code == crossterm::event::KeyCode::Char('q')
+        {
+            self.exit = true;
+        }
     }
 
     fn draw(&self, frame: &mut ratatui::Frame) {
