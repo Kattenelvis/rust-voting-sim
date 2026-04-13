@@ -5,9 +5,13 @@ use std::io;
 
 mod preference;
 mod preference_loading;
+mod tui;
 
 fn main() {
     let mut input = String::new();
+
+    tui::tui_main();
+    return;
 
     println!("Enter population:");
     io::stdin().read_line(&mut input).unwrap();
@@ -46,6 +50,7 @@ struct World {
 }
 
 impl World {
+    // Main simulation loop
     fn simulation(&mut self) {
         for i in 0..self.timesteps {
             println!("Timestep: {i}");

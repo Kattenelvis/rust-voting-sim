@@ -5,3 +5,6 @@ edition = "2024"
 
 [dependencies]
 code-timing-macros = "0.0.6"
+crossterm = "0.29.0"
+ratatui = "0.30.0"
+
